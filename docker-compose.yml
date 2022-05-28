@@ -1,0 +1,44 @@
+version: '3.8'
+services:
+  db:
+    image: postgres:10.3
+    restart: always
+    container_name: db
+    environment:
+      - POSTGRES_USER=test
+      - POSTGRES_PASSWORD=test123
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+
+  redis:
+    image: "redis:alpine"
+    container_name: redis
+    hostname: redis
+    ports:
+      - "6379:6379"
+
+  backend:
+    container_name: backend
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - NODE_ENV="production"
+    environment:
+      # Those should be used as secrets in production
+      - DATABASE_URL=postgresql://test:test123@host.docker.internal:5432/mydb?schema=public
+      - JWT_SECRET=09f26e402586e2faa8da4c98a35f1b20d6b033c6097befa8be3486a829587fe2f90a832bd3ff9d42710a4da095a2ce285b009f0c3730cd9b8e1af3eb84df6611
+      - REDIS_CONNECTION=redis://host.docker.internal:6379
+      - SERVER_PORT=8080
+      - LOG_LEVEL=info
+      - NODE_ENV=production
+    depends_on:
+      - db
+      - redis
+    ports:
+      - 8080:8080
+
+volumes:
+  postgres: {}

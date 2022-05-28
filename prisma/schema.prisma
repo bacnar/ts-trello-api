@@ -1,0 +1,66 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+// env("DATABASE_URL")
+
+generator client {
+  provider = "prisma-client-js"
+  binaryTargets = ["linux-musl", "native"]
+}
+
+model Member {
+  id                Int     @default(autoincrement()) @id
+  appName           String
+  username          String
+  fullName          String?
+  password          String
+  apiKey           String
+  createdAt         DateTime  @default(now()) @map(name: "created_at")
+  boards            Board[]
+}
+
+model Board {
+  id                Int         @default(autoincrement()) @id
+  member            Member      @relation(fields: [idMember], references: [id])
+  idMember          Int
+  name              String
+  desc              String?
+  closed            Boolean?    @default(false)
+  defaultLists      Boolean?    @default(true)
+  createdAt         DateTime    @default(now()) @map(name: "created_at")
+  lists             List[]
+}
+
+model List {
+  id                Int         @default(autoincrement()) @id
+  board             Board       @relation(fields: [idBoard], references: [id])
+  idBoard           Int
+  name              String
+  closed            Boolean     @default(false)
+  createdAt         DateTime    @default(now()) @map(name: "created_at")
+  cards             Card[]
+}
+
+model Card {
+  id                Int         @default(autoincrement()) @id
+  list              List        @relation(fields: [idList], references: [id])
+  idList            Int
+  name              String?
+  desc              String?
+  closed            Boolean     @default(false)
+  createdAt         DateTime    @default(now()) @map(name: "created_at")
+  actions           Action[]
+}
+
+model Action {
+  id                Int         @default(autoincrement()) @id
+  card              Card        @relation(fields: [idCard], references: [id])
+  idCard            Int
+  type              String
+  text              String?
+  createdAt         DateTime    @default(now()) @map(name: "created_at")
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
